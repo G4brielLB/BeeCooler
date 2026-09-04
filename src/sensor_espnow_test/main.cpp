@@ -18,8 +18,10 @@ using BeeCoolerIntegrationTest::Sample;
 using BeeCoolerProtocol::Packet;
 using BeeCoolerProtocol::Status;
 
-// Replace this with the station MAC printed by gateway_espnow_test.
-constexpr uint8_t kGatewayPeerMac[ESP_NOW_ETH_ALEN] = {0, 0, 0, 0, 0, 0};
+constexpr uint8_t kGatewayPeerMac[ESP_NOW_ETH_ALEN] = {
+    GATEWAY_MAC_B0, GATEWAY_MAC_B1, GATEWAY_MAC_B2,
+    GATEWAY_MAC_B3, GATEWAY_MAC_B4, GATEWAY_MAC_B5
+};
 constexpr uint8_t kTestWifiChannel = 6U;
 constexpr uint32_t kSensorNodeId = 1U;
 constexpr uint32_t kAckTimeoutMs = 300U;

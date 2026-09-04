@@ -15,8 +15,10 @@ namespace {
 using BeeCoolerProtocol::Packet;
 using BeeCoolerProtocol::Status;
 
-// Replace this with the station MAC printed by sensor_espnow_test.
-constexpr uint8_t kSensorPeerMac[ESP_NOW_ETH_ALEN] = {0, 0, 0, 0, 0, 0};
+constexpr uint8_t kSensorPeerMac[ESP_NOW_ETH_ALEN] = {
+    SENSOR_MAC_B0, SENSOR_MAC_B1, SENSOR_MAC_B2,
+    SENSOR_MAC_B3, SENSOR_MAC_B4, SENSOR_MAC_B5
+};
 constexpr uint8_t kTestWifiChannel = 6U;
 constexpr size_t kMaximumBatchFragments = 8U;
 constexpr size_t kMaximumBatchBytes =
