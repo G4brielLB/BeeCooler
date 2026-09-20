@@ -1,8 +1,15 @@
 .pio
 .env
+data/*
+!data/records.csv
+!data/batches.csv
+!data/gateway_stats.csv
+!data/gateway_raw_20260904T091350-0300_444e0683.log
+!data/gateway_raw_20260916T102940-0300_58ad6dab.log
 .vscode/.browse.c_cpp.db*
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
 
 AGENTS.md
+UPLOAD_MONITOR_ESP32.md

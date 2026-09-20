@@ -251,8 +251,8 @@ void transmitCollectedBatch() {
   size_t batch_size = 0U;
   if (!BeeCoolerIntegrationTest::serializeBatch(
           samples, acquiredRecordCount,
-          BeeCoolerIntegrationTest::kNominalSampleIntervalMs, batch_bytes,
-          sizeof(batch_bytes), batch_size)) {
+          BeeCoolerIntegrationTest::kNominalSampleIntervalMs, batchStartMs,
+          batch_bytes, sizeof(batch_bytes), batch_size)) {
     Serial.printf("BATCH_ERROR batch_id=%lu reason=test_schema_serialization_failed\n",
                   static_cast<unsigned long>(nextBatchId));
     return;

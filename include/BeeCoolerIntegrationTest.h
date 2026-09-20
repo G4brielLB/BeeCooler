@@ -10,10 +10,10 @@
 // format. All multibyte values use network byte order (big-endian).
 namespace BeeCoolerIntegrationTest {
 
-constexpr uint8_t kSchemaVersion = 1U;
+constexpr uint8_t kSchemaVersion = 2U;
 constexpr uint16_t kNominalSampleIntervalMs = 500U;
 constexpr size_t kTargetRecordCount = 60U;
-constexpr size_t kBatchHeaderSize = 5U;
+constexpr size_t kBatchHeaderSize = 9U;
 constexpr size_t kRecordWireSize = 20U;
 constexpr size_t kAckPayloadSize = 6U;
 constexpr size_t kNormalBatchWireSize =
@@ -39,6 +39,7 @@ struct BatchHeader {
   uint8_t schema_version;
   uint16_t record_count;
   uint16_t nominal_sample_interval_ms;
+  uint32_t batch_start_ms;
 };
 
 struct AckPayload {
@@ -155,6 +156,7 @@ inline bool deserializeRecord(const uint8_t* input, size_t input_size,
 
 inline bool serializeBatch(const Sample* samples, size_t record_count,
                            uint16_t nominal_sample_interval_ms,
+                           uint32_t batch_start_ms,
                            uint8_t* output, size_t output_capacity,
                            size_t& output_size) {
   output_size = 0U;
@@ -171,6 +173,7 @@ inline bool serializeBatch(const Sample* samples, size_t record_count,
   output[0] = kSchemaVersion;
   writeUint16(output + 1U, static_cast<uint16_t>(record_count));
   writeUint16(output + 3U, nominal_sample_interval_ms);
+  writeUint32(output + 5U, batch_start_ms);
   for (size_t i = 0U; i < record_count; ++i) {
     if (!serializeRecord(samples[i], output + kBatchHeaderSize +
                                          i * kRecordWireSize,
@@ -191,6 +194,7 @@ inline bool deserializeBatchHeader(const uint8_t* input, size_t input_size,
   header.schema_version = input[0];
   header.record_count = readUint16(input + 1U);
   header.nominal_sample_interval_ms = readUint16(input + 3U);
+  header.batch_start_ms = readUint32(input + 5U);
   if (header.schema_version != kSchemaVersion) {
     return false;
   }

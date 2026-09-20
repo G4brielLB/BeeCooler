@@ -216,10 +216,14 @@ void sendAck(const Packet& data_packet) {
                 static_cast<unsigned>(wire_size));
 }
 
-void printSample(uint32_t batch_id, const BeeCoolerIntegrationTest::Sample& sample) {
-  Serial.printf("RECORD batch_id=%lu index=%u elapsed_ms=%u internal_temp_c=%.2f internal_rh_pct=%.2f external_temp_c=%.2f external_rh_pct=%.2f accel_x_g=%.4f accel_y_g=%.4f accel_z_g=%.4f accel_magnitude_g=%.4f\n",
+void printSample(uint32_t batch_id, uint32_t batch_start_ms,
+                 const BeeCoolerIntegrationTest::Sample& sample) {
+  const uint32_t sensor_ms =
+      batch_start_ms + static_cast<uint32_t>(sample.elapsed_ms);
+  Serial.printf("RECORD batch_id=%lu index=%u sensor_ms=%lu elapsed_ms=%u internal_temp_c=%.2f internal_rh_pct=%.2f external_temp_c=%.2f external_rh_pct=%.2f accel_x_g=%.4f accel_y_g=%.4f accel_z_g=%.4f accel_magnitude_g=%.4f\n",
                 static_cast<unsigned long>(batch_id), sample.sample_index,
-                sample.elapsed_ms, sample.internal_temperature_c,
+                static_cast<unsigned long>(sensor_ms), sample.elapsed_ms,
+                sample.internal_temperature_c,
                 sample.internal_humidity_percent,
                 sample.external_temperature_c,
                 sample.external_humidity_percent, sample.acceleration_x_g,
@@ -254,8 +258,9 @@ void completeBatch() {
   }
 
   ++statistics.completed_batches;
-  Serial.printf("BATCH_COMPLETE batch_id=%lu bytes=%u records=%u interval_ms=%u duplicates=%u\n",
+  Serial.printf("BATCH_COMPLETE batch_id=%lu batch_start_ms=%lu bytes=%u records=%u interval_ms=%u duplicates=%u\n",
                 static_cast<unsigned long>(batchState.batch_id),
+                static_cast<unsigned long>(header.batch_start_ms),
                 static_cast<unsigned>(batch_size), header.record_count,
                 header.nominal_sample_interval_ms, batchState.duplicate_count);
   for (uint16_t i = 0U; i < header.record_count; ++i) {
@@ -269,7 +274,7 @@ void completeBatch() {
       ++statistics.malformed_packets;
       break;
     }
-    printSample(batchState.batch_id, sample);
+    printSample(batchState.batch_id, header.batch_start_ms, sample);
   }
   statistics.receive_queue_drops = callbackQueueDrops;
   Serial.printf("GATEWAY_STATS valid_data_packets=%lu unique_fragments=%lu duplicate_fragments=%lu malformed_packets=%lu crc_failures=%lu acks_transmitted=%lu completed_batches=%lu incomplete_batches_replaced=%lu sequence_gaps=%lu receive_queue_drops=%lu\n",
