@@ -1,0 +1,7 @@
+# Name,    Type, SubType, Offset,   Size,     Flags
+# ESP32-S3 N16R8 (16 MB flash). `beelog` e o ring de registros (v1.2, 5.6):
+# 8 MB / 32 B = 262.144 slots, setores de 4 KB. SubType 0x40 = custom.
+nvs,       data, nvs,     0x9000,   0x5000,
+factory,   app,  factory, 0x10000,  0x3F0000,
+beelog,    data, 0x40,    0x400000, 0x800000,
+coredump,  data, coredump,0xC00000, 0x10000,

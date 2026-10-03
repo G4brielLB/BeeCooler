@@ -1,0 +1,7 @@
+# Name,    Type, SubType, Offset,   Size,     Flags
+# ESP32-WROOM (4 MB). `spiffs` e montada como LittleFS: fila de uplink,
+# quarentena e estado por no (Integracao em Nuvem v1.1, P-LFS = 1 MB).
+nvs,       data, nvs,     0x9000,   0x5000,
+factory,   app,  factory, 0x10000,  0x1F0000,
+spiffs,    data, spiffs,  0x200000, 0x100000,
+coredump,  data, coredump,0x300000, 0x10000,
