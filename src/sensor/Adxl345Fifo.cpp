@@ -110,8 +110,10 @@ AdxlWindow Adxl345Fifo::capture(int16_t* buffer, uint32_t max_samples,
   read(REG_INT_SOURCE);              // clear pending flags
   write(REG_INT_ENABLE, INT_WATERMARK);
 
+#ifndef BEE_ADXL_NO_INT1
   esp_sleep_enable_gpio_wakeup();
   gpio_wakeup_enable(static_cast<gpio_num_t>(int1_), GPIO_INTR_HIGH_LEVEL);
+#endif
 
   const uint32_t start = millis();
   write(REG_POWER_CTL, POWER_MEASURE);
@@ -120,6 +122,11 @@ AdxlWindow Adxl345Fifo::capture(int16_t* buffer, uint32_t max_samples,
   while (captured < max_samples) {
     if (millis() - start > timeout_ms) break;
 
+#ifdef BEE_ADXL_NO_INT1
+    // Bench build without INT1 wired: poll the FIFO instead of light-sleeping.
+    // 5 ms is ~8 samples at 1600 Hz, well inside the 32-entry FIFO.
+    delay(5);
+#else
     // Sleep until the watermark; INT1 stays high until the FIFO is drained.
     // The timer is a safety net: with a dead ADXL (no INT1) the node would
     // otherwise sleep forever inside the window and the timeout never fires.
@@ -127,6 +134,7 @@ AdxlWindow Adxl345Fifo::capture(int16_t* buffer, uint32_t max_samples,
       esp_sleep_enable_timer_wakeup(kLightSleepGuardUs);
       esp_light_sleep_start();
     }
+#endif
 
     const uint8_t source = read(REG_INT_SOURCE);
     if (source & INT_OVERRUN) ++w.overruns;
@@ -139,7 +147,9 @@ AdxlWindow Adxl345Fifo::capture(int16_t* buffer, uint32_t max_samples,
     }
   }
 
+#ifndef BEE_ADXL_NO_INT1
   gpio_wakeup_disable(static_cast<gpio_num_t>(int1_));
+#endif
   write(REG_INT_ENABLE, 0x00);
   w.samples = captured;
   w.complete = captured >= max_samples;

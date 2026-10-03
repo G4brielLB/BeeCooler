@@ -40,7 +40,7 @@ constexpr int kPinLoraAux = 5;
 
 // DS1302 (3 fios, bit-bang)
 constexpr int kPinRtcCe = 47;
-constexpr int kPinRtcIo = 48;
+constexpr int kPinRtcIo = 40;
 constexpr int kPinRtcSclk = 21;
 
 // ---- Verificacoes em tempo de compilacao

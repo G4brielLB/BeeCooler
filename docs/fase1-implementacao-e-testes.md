@@ -121,7 +121,7 @@ Fonte da verdade: `src/sensor/pins.h` e `src/gateway/pins.h`. O detalhe completo
 | DX-LR32 | M1 | 2 | `M1` |
 | DX-LR32 | AUX | 5 | `AUX` |
 | DS1302 | CE / RST | 47 | `RST` |
-| DS1302 | I/O / DATA | 48 | `DAT` |
+| DS1302 | I/O / DATA | 40 | `DAT` |
 | DS1302 | SCLK | 21 | `CLK` |
 
 ### 4.2 Central

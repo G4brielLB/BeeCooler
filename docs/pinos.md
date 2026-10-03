@@ -33,10 +33,10 @@ Os nomes da coluna "Pino do módulo" são os comuns de cada placa. **Confira a s
 | DX-LR32 | M1 | **2** | `kPinLoraM1` | `M1` | Idem |
 | DX-LR32 | AUX | **5** | `kPinLoraAux` | `AUX` | Alto = ocupado; a queda marca o fim do TX |
 | DS1302 | CE / RST | **47** | `kPinRtcCe` | `RST` | |
-| DS1302 | I/O / DATA | **48** | `kPinRtcIo` | `DAT` | |
+| DS1302 | I/O / DATA | **40** | `kPinRtcIo` | `DAT` | |
 | DS1302 | SCLK | **21** | `kPinRtcSclk` | `CLK` | |
 
-GPIO usados no total: **1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 38, 39, 47, 48** (21 sinais, nenhum repetido).
+GPIO usados no total: **1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 38, 39, 40, 47** (21 sinais, nenhum repetido).
 
 ### 1.2 Diagrama
 
@@ -59,7 +59,7 @@ GPIO usados no total: **1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
    DX-LR32   GPIO38 ──► RXD      GPIO39 ◄── TXD      (cruzado)
              GPIO1  ──► M0       GPIO2  ──► M1       GPIO5 ◄── AUX
 
-   DS1302    GPIO47 ──► RST      GPIO48 ◄─► DAT      GPIO21 ──► CLK
+   DS1302    GPIO47 ──► RST      GPIO40 ◄─► DAT      GPIO21 ──► CLK
 ```
 
 ### 1.3 Por que estes GPIO (e quais evitar)
@@ -119,7 +119,7 @@ O `pins.h` confere isso na compilação: `static_assert` para M0/M1 ≤ 21, pino
 1. **Conferir a serigrafia.** O M0/M1 do DX-LR32 pode aparecer como MD0/MD1; o `SDA` do GY-291 é o MOSI no modo SPI e o `SDO` é o MISO.
 2. **Todos os sinais em 3,3 V.** Nenhum pino do S3 é tolerante a 5 V.
 3. **Módulo de microSD:** muitos têm regulador AMS1117 e conversor de nível pensados para 5 V. Com o trilho de 3,3 V do nó, use um módulo que funcione em 3,3 V direto. Como o MISO é compartilhado com o ADXL345, o módulo precisa **liberar o MISO** (tri-state) com o CS em alto, senão o ADXL345 não é lido corretamente.
-4. **LEDs do DevKit.** O LED RGB do DevKit-C-1 fica no GPIO48 (v1.0) ou no GPIO38 (v1.1), justamente pinos usados aqui. Os LEDs de bordo e o regulador do DevKit somam à corrente de deep sleep e podem estourar o limite de RNF-05 (≤ 4 mA). Isso vale para a bancada; a placa final não terá esses componentes.
+4. **LEDs do DevKit.** O LED RGB do DevKit-C-1 fica no GPIO48 (v1.0) ou no GPIO38 (v1.1). O GPIO48 não é mais usado (o DAT do DS1302 foi para o GPIO40); no GPIO38 está o TX do LoRa, então numa placa v1.1 o LED acompanha esse sinal. Os LEDs de bordo e o regulador do DevKit somam à corrente de deep sleep e podem estourar o limite de RNF-05 (≤ 4 mA). Isso vale para a bancada; a placa final não terá esses componentes.
 5. **Resistores do módulo de tensão:** antes de ligar o pino `S` ao GPIO4, meça VCC→S (~30 kΩ) e S→GND (~7,5 kΩ) com o módulo desconectado (v1.2, 8.2).
 6. **Não existe pino de atuador** nesta tabela. O ESP32-C3 e a bomba serão tratados no firmware do Ramo 2.
 
