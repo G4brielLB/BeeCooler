@@ -5,9 +5,9 @@
 // UART2 do ESP32 (GPIO16/17) e pinos de uso geral sem restricao de boot.
 constexpr int kPinLoraRx = 16;   // ESP RX <- TX do modulo
 constexpr int kPinLoraTx = 17;   // ESP TX -> RX do modulo
-constexpr int kPinLoraM0 = 25;
-constexpr int kPinLoraM1 = 26;
-constexpr int kPinLoraAux = 27;
+constexpr int kPinLoraM0 = 19;
+constexpr int kPinLoraM1 = 21;
+constexpr int kPinLoraAux = 18;
 
 // GPIO 16/17 so estao livres no ESP32-WROOM-32 (no WROVER sao da PSRAM).
 static_assert(kPinLoraRx != kPinLoraTx && kPinLoraM0 != kPinLoraM1 &&

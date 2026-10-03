@@ -83,17 +83,17 @@ O `pins.h` confere isso na compilação: `static_assert` para M0/M1 ≤ 21, pino
 |---|---:|---|---|---|
 | ESP RX ← módulo | **16** | `kPinLoraRx` | `TXD` | UART2, 115200 baud (igual ao nó) |
 | ESP TX → módulo | **17** | `kPinLoraTx` | `RXD` | TX e RX **cruzados** |
-| M0 | **25** | `kPinLoraM0` | `M0` | A central mantém o módulo sempre em modo normal (recebendo) |
-| M1 | **26** | `kPinLoraM1` | `M1` | |
-| AUX | **27** | `kPinLoraAux` | `AUX` | |
+| M0 | **19** | `kPinLoraM0` | `M0` | A central mantém o módulo sempre em modo normal (recebendo) |
+| M1 | **21** | `kPinLoraM1` | `M1` | |
+| AUX | **18** | `kPinLoraAux` | `AUX` | |
 
 ```text
    ESP32-WROOM                    DX-LR32
    GPIO16 (RX2) ◄──────────────── TXD
    GPIO17 (TX2) ───────────────►  RXD
-   GPIO25 ─────────────────────►  M0
-   GPIO26 ─────────────────────►  M1
-   GPIO27 ◄─────────────────────  AUX
+   GPIO19 ─────────────────────►  M0
+   GPIO21 ─────────────────────►  M1
+   GPIO18 ◄─────────────────────  AUX
    3V3/5V ─────────────────────►  VCC      GND ──── GND
 ```
 
@@ -130,7 +130,7 @@ O `pins.h` confere isso na compilação: `static_assert` para M0/M1 ≤ 21, pino
 - [ ] GND comum: continuidade entre todos os GND da tabela da seção 3.
 - [ ] 3,3 V estável no trilho do TPS63020 antes de ligar o ESP.
 - [ ] TX/RX do DX-LR32 **cruzados** (ESP TX → RXD, ESP RX ← TXD), nos dois lados.
-- [ ] M0/M1 no GPIO 1 e 2 (nó) e 25 e 26 (central).
+- [ ] M0/M1 no GPIO 1 e 2 (nó) e 19 e 21 (central).
 - [ ] Pull-ups de CS no ADXL345 e no microSD; CR2032 no DS1302.
 - [ ] Resistores do módulo de tensão conferidos.
 - [ ] `pio run -e sensor -e gateway` compila com a pinagem atual.

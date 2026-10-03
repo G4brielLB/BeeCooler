@@ -152,7 +152,7 @@ O driver **não configura** o módulo, só usa o modo transparente. Antes de lig
 
 - [ ] Continuidade entre todos os GND.
 - [ ] 3,3 V estável no TPS63020 antes de ligar o ESP.
-- [ ] M0/M1 em 1 e 2 (nó) e 25 e 26 (central).
+- [ ] M0/M1 em 1 e 2 (nó) e 19 e 21 (central).
 - [ ] Pull-ups de CS e CR2032 no DS1302.
 - [ ] Antenas conectadas aos dois DX-LR32 antes de transmitir.
 
