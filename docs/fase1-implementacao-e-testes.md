@@ -128,11 +128,11 @@ Fonte da verdade: `src/sensor/pins.h` e `src/gateway/pins.h`. O detalhe completo
 
 | Periférico | Sinal | GPIO | Pino do módulo |
 |---|---|---:|---|
-| DX-LR32 | ESP RX ← módulo | 16 | `TXD` |
-| DX-LR32 | ESP TX → módulo | 17 | `RXD` |
-| DX-LR32 | M0 | 25 | `M0` |
-| DX-LR32 | M1 | 26 | `M1` |
-| DX-LR32 | AUX | 27 | `AUX` |
+| DX-LR32 | ESP RX2 ← módulo | 16 | `TXD` |
+| DX-LR32 | ESP TX2 → módulo | 17 | `RXD` |
+| DX-LR32 | M0 | 19 | `M0` |
+| DX-LR32 | M1 | 21 | `M1` |
+| DX-LR32 | AUX | 18 | `AUX` |
 
 ### 4.3 Cuidados principais
 
