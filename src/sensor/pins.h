@@ -36,7 +36,7 @@ constexpr int kPinLoraTx = 38;   // ESP TX -> RX do modulo
 constexpr int kPinLoraRx = 39;   // ESP RX <- TX do modulo
 constexpr int kPinLoraM0 = 1;
 constexpr int kPinLoraM1 = 2;
-constexpr int kPinLoraAux = 5;
+constexpr int kPinLoraAux = 41;
 
 // DS1302 (3 fios, bit-bang)
 constexpr int kPinRtcCe = 47;

@@ -31,12 +31,12 @@ Os nomes da coluna "Pino do módulo" são os comuns de cada placa. **Confira a s
 | DX-LR32 | ESP RX ← módulo | **39** | `kPinLoraRx` | `TXD` | TX e RX são **cruzados** |
 | DX-LR32 | M0 | **1** | `kPinLoraM0` | `M0` | Obrigatoriamente GPIO RTC (0–21), veja 1.3 |
 | DX-LR32 | M1 | **2** | `kPinLoraM1` | `M1` | Idem |
-| DX-LR32 | AUX | **5** | `kPinLoraAux` | `AUX` | Alto = ocupado; a queda marca o fim do TX |
+| DX-LR32 | AUX | **41** | `kPinLoraAux` | `AUX` | Alto = ocupado; a queda marca o fim do TX |
 | DS1302 | CE / RST | **47** | `kPinRtcCe` | `RST` | |
 | DS1302 | I/O / DATA | **40** | `kPinRtcIo` | `DAT` | |
 | DS1302 | SCLK | **21** | `kPinRtcSclk` | `CLK` | |
 
-GPIO usados no total: **1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 38, 39, 40, 47** (21 sinais, nenhum repetido).
+GPIO usados no total: **1, 2, 4, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 38, 39, 40, 41, 47** (21 sinais, nenhum repetido).
 
 ### 1.2 Diagrama
 
@@ -57,7 +57,7 @@ GPIO usados no total: **1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
    ADXL345 INT1 ───► GPIO16          ADXL345 INT2 ───► GPIO7
 
    DX-LR32   GPIO38 ──► RXD      GPIO39 ◄── TXD      (cruzado)
-             GPIO1  ──► M0       GPIO2  ──► M1       GPIO5 ◄── AUX
+             GPIO1  ──► M0       GPIO2  ──► M1       GPIO41 ◄── AUX
 
    DS1302    GPIO47 ──► RST      GPIO40 ◄─► DAT      GPIO21 ──► CLK
 ```

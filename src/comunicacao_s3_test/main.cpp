@@ -83,6 +83,79 @@ void printClockRegisters() {
                 kPinRtcCe, kPinRtcIo, kPinRtcSclk);
 }
 
+// Bench commands are serviced between cycles, never during acquisition/TX.
+// Epoch inputs and RTC contents use UTC, independent of the Mac's timezone.
+void handleClockCommand(const char* line) {
+  if (strcmp(line, "time") == 0) {
+    uint32_t epoch = 0;
+    if (readClock(epoch)) {
+      Serial.print("[RTC] UTC: ");
+      printDateTime(epoch);
+      Serial.printf(" | epoch=%lu\n", static_cast<unsigned long>(epoch));
+    } else {
+      printClockRegisters();
+    }
+    return;
+  }
+  if (strncmp(line, "settime ", 8) != 0) {
+    Serial.println("[CONSOLE] time | settime <epoch UTC>; no Mac: date '+settime %s'");
+    return;
+  }
+  const char* number = line + 8;
+  const size_t digits = strlen(number);
+  uint64_t value = 0;
+  bool valid = digits > 0 && digits <= 10;
+  for (size_t i = 0; valid && i < digits; ++i) {
+    valid = number[i] >= '0' && number[i] <= '9';
+    if (valid) value = value * 10U + static_cast<unsigned>(number[i] - '0');
+  }
+  // DS1302 stores a two-digit year interpreted by this driver as 2000..2099.
+  if (!valid || value < 946684800ULL || value >= 4102444800ULL) {
+    Serial.println("[RTC] recusado: informe epoch UTC entre 2000 e 2099");
+    return;
+  }
+  const uint32_t requested = static_cast<uint32_t>(value);
+  gClock.writeEpoch(requested);
+  uint32_t first = 0, second = 0;
+  const bool readback_ok = readClock(first) && first >= requested &&
+                           first - requested <= 2U;
+  delay(1100);
+  const bool counting = readClock(second) && second > first &&
+                         second - first <= 3U;
+  if (!readback_ok || !counting) {
+    Serial.println("[RTC] FALHA no ajuste: gravacao/leitura ou contagem nao confirmada");
+    printClockRegisters();
+    return;
+  }
+  Serial.print("[RTC] AJUSTE MANUAL OK (UTC): ");
+  printDateTime(second);
+  Serial.println(" | leitura e contagem confirmadas; precisao depende da hora enviada");
+}
+
+void pollClockConsole() {
+  static char line[48];
+  static size_t length = 0;
+  static bool overflow = false;
+  while (Serial.available() > 0) {
+    const int value = Serial.read();
+    if (value < 0) break;
+    const char c = static_cast<char>(value);
+    if (c == '\r' || c == '\n') {
+      if (overflow) Serial.println("[CONSOLE] comando muito longo; descartado");
+      else if (length > 0) {
+        line[length] = '\0';
+        handleClockCommand(line);
+      }
+      length = 0;
+      overflow = false;
+    } else if (length + 1 < sizeof(line)) {
+      line[length++] = c;
+    } else {
+      overflow = true;
+    }
+  }
+}
+
 bool testClock(uint32_t& epoch) {
   uint32_t before = 0;
   if (!readClock(before)) {
@@ -393,6 +466,7 @@ void setup() {
                 static_cast<unsigned long>(kCyclePeriodMs),
                 static_cast<unsigned long>(kTestAckTimeoutMs));
   Serial.println("Gateway correspondente: comunicacao_wroom_test. Sem sleep ou cloud.");
+  Serial.println("[CONSOLE] time | settime <epoch UTC>; comandos processados entre ciclos");
   Serial.printf("[PINOS] SHT int SDA/SCL=%d/%d ext=%d/%d | SPI SCK/MISO/MOSI=%d/%d/%d CS ADXL/SD=%d/%d\n",
                 kPinShtIntSda, kPinShtIntScl, kPinShtExtSda, kPinShtExtScl,
                 kPinSpiSck, kPinSpiMiso, kPinSpiMosi, kPinAdxlCs, kPinSdCs);
@@ -458,11 +532,15 @@ void setup() {
 }
 
 void loop() {
+  pollClockConsole();
   runCycle();
   gNextCycleMs += kCyclePeriodMs;
   const int32_t wait = static_cast<int32_t>(gNextCycleMs - millis());
   if (wait > 0) {
-    delay(static_cast<uint32_t>(wait));
+    while (static_cast<int32_t>(gNextCycleMs - millis()) > 0) {
+      pollClockConsole();
+      delay(5);
+    }
   } else {
     gNextCycleMs = millis();  // ciclo estourou 60 s: reancora
   }
