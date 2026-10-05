@@ -90,12 +90,16 @@ bool Ds1302Clock::halted() {
   return (readRegister(kRegSeconds) & kClockHaltBit) != 0;
 }
 
-bool Ds1302Clock::readEpoch(uint32_t& epoch) {
-  uint8_t r[8];
+void Ds1302Clock::readClockRegisters(uint8_t (&r)[8]) {
   start();
   writeByte(kCmdClockBurstRead);
   for (uint8_t i = 0; i < 8; ++i) r[i] = readByte();
   end();
+}
+
+bool Ds1302Clock::readEpoch(uint32_t& epoch) {
+  uint8_t r[8];
+  readClockRegisters(r);
 
   if (r[0] & kClockHaltBit) return false;
   // 24 h mode only; a 12 h flag means the RTC was never set by this firmware.

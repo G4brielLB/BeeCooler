@@ -30,6 +30,7 @@ struct Features {
 
 // `samples` is interleaved x,y,z int16 raw counts, `n` samples per axis.
 // Needs at least kSegment samples per axis.
+// Uses shared static scratch buffers; calls must not overlap across tasks.
 Features compute(const int16_t* samples, size_t n, float sample_rate_hz);
 
 // Record fields: 0.1 mg units clamped to 0..65534.

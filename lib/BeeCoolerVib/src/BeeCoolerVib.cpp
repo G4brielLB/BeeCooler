@@ -83,15 +83,17 @@ Features compute(const int16_t* samples, size_t n, float fs) {
   memset(&out, 0, sizeof(out));
   if (samples == nullptr || n < kSegment || fs <= 0.0f) return out;
 
-  // Tables, window and window power.
-  float cos_t[kSegment / 2U];
-  float sin_t[kSegment / 2U];
+  // Reuse bounded scratch buffers outside the Arduino loop task's stack.
+  // Together these need 11 KiB, exceeding its default 8 KiB stack.
+  // Acquisition and processing call compute sequentially from one task.
+  static float cos_t[kSegment / 2U];
+  static float sin_t[kSegment / 2U];
   for (size_t k = 0U; k < kSegment / 2U; ++k) {
     const float a = 2.0f * kPi * static_cast<float>(k) / kSegment;
     cos_t[k] = cosf(a);
     sin_t[k] = sinf(a);
   }
-  float window[kSegment];
+  static float window[kSegment];
   float window_power = 0.0f;
   for (size_t i = 0U; i < kSegment; ++i) {
     window[i] = 0.5f - 0.5f * cosf(2.0f * kPi * i / kSegment);  // periodic Hann
@@ -119,14 +121,14 @@ Features compute(const int16_t* samples, size_t n, float fs) {
   out.peak_mg = sqrtf(peak_sq);
 
   // Pass 2: per axis, high-pass, RMS, and Welch accumulation.
-  float psd[kSegment / 2U + 1U];
+  static float psd[kSegment / 2U + 1U];
   memset(psd, 0, sizeof(psd));
   float rms_sq_total = 0.0f;
   size_t segments = 0U;
 
   for (size_t a = 0U; a < 3U; ++a) {
     Biquad hp = makeHighPass(kHighPassHz, fs);
-    float segment[kSegment];
+    static float segment[kSegment];
     size_t filled = 0U;
     double energy = 0.0;
     size_t axis_segments = 0U;
@@ -136,8 +138,8 @@ Features compute(const int16_t* samples, size_t n, float fs) {
       energy += static_cast<double>(y) * y;
       segment[filled++] = y;
       if (filled == kSegment) {
-        float re[kSegment];
-        float im[kSegment];
+        static float re[kSegment];
+        static float im[kSegment];
         for (size_t k = 0U; k < kSegment; ++k) {
           re[k] = segment[k] * window[k];
           im[k] = 0.0f;

@@ -29,6 +29,8 @@ class Ds1302Clock {
   // True when the oscillator is running and the stored calendar is valid.
   // `epoch` is UTC seconds. False after a CR2032 failure (Clock Halt set).
   bool readEpoch(uint32_t& epoch);
+  // Raw calendar burst, for bench diagnostics; does not write the RTC.
+  void readClockRegisters(uint8_t (&registers)[8]);
   bool halted();
   void writeEpoch(uint32_t epoch);  // also starts the oscillator
 

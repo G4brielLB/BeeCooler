@@ -34,12 +34,16 @@ bool readAnswer(TwoWire& bus, uint8_t address, uint8_t* buffer) {
 
 }  // namespace
 
-bool Sht30Pair::probe(TwoWire& bus, uint8_t& address) {
+bool Sht30Pair::probe(TwoWire& bus, uint8_t& address, ShtDiagnostics& diagnostics) {
   static const uint8_t kAddresses[] = {0x44, 0x45};
-  for (uint8_t candidate : kAddresses) {
+  for (uint8_t i = 0; i < 2; ++i) {
+    const uint8_t candidate = kAddresses[i];
     bus.beginTransmission(candidate);
-    if (bus.endTransmission() == 0) {
+    diagnostics.probe_status[i] = bus.endTransmission();
+    if (diagnostics.probe_status[i] == 0) {
       address = candidate;
+      diagnostics.address = candidate;
+      diagnostics.address_found = true;
       return true;
     }
   }
@@ -49,10 +53,12 @@ bool Sht30Pair::probe(TwoWire& bus, uint8_t& address) {
 void Sht30Pair::begin(int in_sda, int in_scl, int out_sda, int out_scl) {
   in_bus_ = &gInBus;
   out_bus_ = &gOutBus;
-  in_bus_->begin(in_sda, in_scl, kI2cHz);
-  out_bus_->begin(out_sda, out_scl, kI2cHz);
-  in_present_ = probe(*in_bus_, in_addr_);
-  out_present_ = probe(*out_bus_, out_addr_);
+  diagnostics_[0] = ShtDiagnostics{};
+  diagnostics_[1] = ShtDiagnostics{};
+  diagnostics_[0].bus_started = in_bus_->begin(in_sda, in_scl, kI2cHz);
+  diagnostics_[1].bus_started = out_bus_->begin(out_sda, out_scl, kI2cHz);
+  in_present_ = diagnostics_[0].bus_started && probe(*in_bus_, in_addr_, diagnostics_[0]);
+  out_present_ = diagnostics_[1].bus_started && probe(*out_bus_, out_addr_, diagnostics_[1]);
 }
 
 ShtResult Sht30Pair::measure() {
@@ -71,10 +77,16 @@ ShtResult Sht30Pair::measure() {
   int16_t t[2][kShtReadsPerSensor];
   int16_t rh[2][kShtReadsPerSensor];
   bool ok[2][kShtReadsPerSensor] = {};
+  for (auto& diagnostic : diagnostics_) {
+    diagnostic.command_failures = diagnostic.read_failures = 0;
+    diagnostic.decode_failures = diagnostic.valid_reads = 0;
+  }
 
   for (uint8_t n = 0; n < kShtReadsPerSensor; ++n) {
     const bool sent_in = in_present_ && sendCommand(*in_bus_, in_addr_);
     const bool sent_out = out_present_ && sendCommand(*out_bus_, out_addr_);
+    if (in_present_ && !sent_in) ++diagnostics_[0].command_failures;
+    if (out_present_ && !sent_out) ++diagnostics_[1].command_failures;
     delay(kShtConversionMs);  // both conversions run in parallel
 
     uint8_t buffer[kBytesPerRead];
@@ -85,8 +97,12 @@ ShtResult Sht30Pair::measure() {
       const uint8_t address = (s == 0) ? in_addr_ : out_addr_;
       int16_t tc;
       uint16_t rc;
-      if (readAnswer(bus, address, buffer) &&
-          BeeCoolerLogic::shtDecode(buffer, tc, rc)) {
+      if (!readAnswer(bus, address, buffer)) {
+        ++diagnostics_[s].read_failures;
+      } else if (!BeeCoolerLogic::shtDecode(buffer, tc, rc)) {
+        ++diagnostics_[s].decode_failures;
+      } else {
+        ++diagnostics_[s].valid_reads;
         t[s][n] = tc;
         rh[s][n] = static_cast<int16_t>(rc);
         ok[s][n] = true;

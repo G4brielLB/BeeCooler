@@ -5,20 +5,27 @@ constexpr uint32_t kModeSettleMs = 2U;  // M0/M1 are sampled by the module
 }
 
 bool BeeCoolerLora::begin(HardwareSerial& uart, const Pins& pins,
-                          uint32_t baud) {
+                          uint32_t baud, bool drive_mode_pins) {
   if (pins.rx < 0 || pins.tx < 0 || pins.m0 < 0 || pins.m1 < 0 ||
       pins.aux < 0) {
     return false;
   }
   uart_ = &uart;
   pins_ = pins;
-  pinMode(pins_.m0, OUTPUT);
-  pinMode(pins_.m1, OUTPUT);
+  drive_mode_pins_ = drive_mode_pins;
+  pinMode(pins_.m0, drive_mode_pins_ ? OUTPUT : INPUT);
+  pinMode(pins_.m1, drive_mode_pins_ ? OUTPUT : INPUT);
   pinMode(pins_.aux, INPUT);
-  // Start in sleep so the module does not draw TX/RX current by accident.
-  digitalWrite(pins_.m0, HIGH);
-  digitalWrite(pins_.m1, HIGH);
-  mode_ = Mode::kSleep;
+  if (drive_mode_pins_) {
+    // Only SWITCH=1 accepts mode control on these pins.
+    digitalWrite(pins_.m0, HIGH);
+    digitalWrite(pins_.m1, HIGH);
+    mode_ = Mode::kSleep;
+  } else {
+    // SWITCH=0: M0/M1 are outputs of the module. Do not drive them.
+    // The caller must confirm SLEEP=2/transparent mode with AT readback.
+    mode_ = Mode::kNormal;
+  }
   uart_->begin(baud, SERIAL_8N1, pins_.rx, pins_.tx);
   return true;
 }
@@ -29,9 +36,12 @@ bool BeeCoolerLora::auxBusy() const {
 
 bool BeeCoolerLora::setMode(Mode mode, uint32_t timeout_ms) {
   if (uart_ == nullptr) return false;
-  const uint8_t level = (mode == Mode::kSleep) ? HIGH : LOW;
-  digitalWrite(pins_.m0, level);
-  digitalWrite(pins_.m1, level);
+  if (!drive_mode_pins_ && mode != Mode::kNormal) return false;
+  if (drive_mode_pins_) {
+    const uint8_t level = (mode == Mode::kSleep) ? HIGH : LOW;
+    digitalWrite(pins_.m0, level);
+    digitalWrite(pins_.m1, level);
+  }
   mode_ = mode;
   delay(kModeSettleMs);
   const uint32_t start = millis();

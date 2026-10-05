@@ -20,7 +20,11 @@ class BeeCoolerLora {
   };
 
   // Returns false only when the pins are invalid; the module is not probed.
-  bool begin(HardwareSerial& uart, const Pins& pins, uint32_t baud);
+  // With SWITCH=0 the module DRIVES M0/M1. Pass false to leave the ESP
+  // pins as inputs; only kNormal is supported in this AT-controlled mode.
+  // The default preserves existing callers configured for SWITCH=1.
+  bool begin(HardwareSerial& uart, const Pins& pins, uint32_t baud,
+             bool drive_mode_pins = true);
 
   // Switches M0/M1 and waits for AUX to go idle (up to `timeout_ms`).
   bool setMode(Mode mode, uint32_t timeout_ms = 1000U);
@@ -44,4 +48,5 @@ class BeeCoolerLora {
   HardwareSerial* uart_ = nullptr;
   Pins pins_ = {-1, -1, -1, -1, -1};
   Mode mode_ = Mode::kSleep;
+  bool drive_mode_pins_ = true;
 };
