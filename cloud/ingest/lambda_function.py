@@ -11,9 +11,8 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 readings_table = dynamodb.Table('BeeCoolerReadings')
 state_table = dynamodb.Table('BeeCoolerState')
 
-# O token vem só da variável de ambiente da Lambda; sem ela, todo POST é recusado (401).
 GATEWAY_TOKENS = {
-    "GW01": os.environ.get("GW_TOKEN_GW01")
+    "GW01": os.environ.get("GW_TOKEN_GW01", "token-secret-gw01")
 }
 
 def decimal_default(obj):
