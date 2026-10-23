@@ -1,0 +1,7 @@
+$ python qualidade.py dados/mensagens_sessao_20261005.csv
+
+=== beecooler-n01
+  leituras recebidas  40   (seq 1 a 40)
+  faltam (seq pulou)  0
+  repetidas           0
+  atraso chegada-ts   mediana 1204939 s · maximo 1206109 s
