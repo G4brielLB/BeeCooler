@@ -43,6 +43,7 @@ enum RecordFlag : uint16_t {
   kShtInStuck = 1U << 11,
   kMechEvent = 1U << 12,
   kCharging = 1U << 13,
+  kPumpRequest = 1U << 14,  // TinyML (sensor_ml): pedir nebulizacao neste ciclo
 };
 
 constexpr uint8_t kPowerLevelShift = 9U;
