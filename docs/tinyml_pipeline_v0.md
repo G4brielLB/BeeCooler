@@ -115,7 +115,7 @@ O linear é o modelo exportado. A MLP **sobreajusta**: com tão poucos dias ela 
 
 ### 6.4 Embarque no ESP32-S3
 
-`../analysis/ml/out/c/beecooler_tinyml.h` é gerado e não deve ser editado à mão. É C99 puro, sem biblioteca, e contém:
+`../lib/BeeCoolerML/src/beecooler_tinyml.h` é gerado por `run_all.py` e não deve ser editado à mão. É C99 puro, sem biblioteca, e contém:
 
 - **Estado em RTC RAM** (`bcml_state_t`, < 100 B; D32): 4 EMAs, 1 EMA de RH, as últimas 4 leituras e o estado da bomba. As EMAs usam passo irregular, α = 1 − e^(−Δt/τ), então funcionam com os ciclos noturnos de 30 min (D35). O estado zera num *cold boot*.
 - **Modelos**: previsão MLP com 321 parâmetros e sensor virtual linear com 10, em float32 e em INT8 (pesos INT8 com escala por camada).
@@ -125,6 +125,30 @@ O linear é o modelo exportado. A MLP **sobreajusta**: com tão poucos dias ela 
 - **Paridade**: `parity_test.c` compara C e Python nos 665 registros: diferença máxima de 8·10⁻⁶ °C e nenhuma divergência na decisão da bomba (gcc no host) ✅. Ainda não foi rodado no S3 🔴.
 
 O tamanho fica bem abaixo da faixa-alvo de 20–100 mil parâmetros (seção 34 de `energia_revisao_v6.md`). Com tão poucos dados, um modelo maior só sobreajustaria. O custo de inferência é desprezível diante dos 50 ms orçados.
+
+### 6.5 Variante de firmware `sensor_ml`
+
+`pio run -e sensor_ml` (ou `sensor_ml_fast` para bancada) compila o mesmo `src/sensor_prod/main.cpp` com `-DBEE_TINYML=1`. Sem essa flag, o `sensor_prod` não muda.
+
+| Peça | O que faz |
+|---|---|
+| `lib/BeeCoolerML/` | `BeeCoolerML.h/.cpp` traduz o registro canônico para o modelo e trata os casos que o treino não cobre; `beecooler_tinyml.h` é o cabeçalho gerado |
+| Estado | `RTC_DATA_ATTR BeeCoolerML::State gMl` (128 B), zerado no *cold boot* e numa lacuna > 60 min, como os segmentos do treino |
+| Momento | Depois de medir T/RH e antes de gravar no *ring*, em todo ciclo. À noite só atualiza as EMAs; a previsão roda na janela 07–18h (D34) |
+| Saída | Bit `kPumpRequest` (bit 14) nas flags do registro canônico, que chega à nuvem sem mudar o formato de 24 B, e uma linha `ml seq=… motivo=… bomba=… t_in=… prev30min=… virtual=… h=… us=…` no `events.log` e na serial |
+| Atuador | `pumpCommand()` é só o ponto de ligação; o ESP32-C3 com a bomba (ESP-NOW) é da Fase 2 |
+
+Casos de sensor, em `BeeCoolerML::step()`:
+
+| Situação | Comportamento |
+|---|---|
+| Os dois SHT30 válidos, EMAs prontas | Previsão + histerese sobre max(T_in, T_in prevista) |
+| < 60 min após um reset | Decide só pela T_in medida (`aquecendo`) |
+| SHT30 externo inválido (RH ≤ 0,5 %, como em 27/11) | Sem modelo; decide pela T_in medida (`ext_invalido`) |
+| SHT30 interno inválido | **A T_in passa a ser a do sensor virtual** (`int_virtual`) e a decisão segue com ela, sem previsão |
+| Os dois inválidos, ou relógio inválido | Bomba desligada (`sem_sensor`, `sem_relogio`) |
+
+Teste nativo: `pio test -e native -f test_tinyml`. Ele confere a lib contra os vetores do Python (`test/test_tinyml/vectors.h`, gerado) e os casos da tabela acima. Rodou no host com g++ e um substituto mínimo do Unity: 7/7 ✅. Ainda falta rodar pelo PlatformIO e compilar o `sensor_ml` para o S3 🔴.
 
 ## 7. Re-treino com mais dados
 
@@ -145,6 +169,7 @@ O pipeline foi feito para ser realimentado: novos dias em `coleta_dados/` → `r
 | ML-6 | Vibração sem sinal da colônia nos resumos | 🔴 analisar `raw.bin` (P6) |
 | ML-7 | Falha do SHT30 externo sem `kShtOutFail`; leituras do SHT30 não independentes | 🔴 firmware |
 | ML-8 | A escolha da MLP usou uma varredura de hiperparâmetros na mesma validação: leve otimismo | 🟡 validação aninhada quando houver mais dias |
-| ML-9 | Cabeçalho validado só no host | 🔴 rodar `bcml_*` no S3 com os vetores de teste |
+| ML-9 | Lib e cabeçalho validados só no host; `sensor_ml` ainda não compilado | 🔴 `pio run -e sensor_ml`, `pio test -e native -f test_tinyml`, depois rodar no S3 e medir o tempo de inferência (`us=` no log) |
+| ML-10 | Bit 14 das flags (`kPumpRequest`) é novo no registro canônico | 🟡 registrar na Arquitetura; nuvem e dashboard hoje guardam as flags sem interpretar esse bit |
 
 Sobre eliminar o sensor interno: **viável como estudo** (MAE de 0,2 °C e mesma decisão de bomba nestes dias), mas **não recomendado como decisão** antes de ML-3 e ML-4. Na atuação, o sensor externo enxerga a nebulização, o que reduz o risco do laço fechado. Em troca, ele fica exposto a água e sol, e é justamente a falha dele que tira o sistema do ar (27/11).
