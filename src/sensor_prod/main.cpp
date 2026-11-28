@@ -60,6 +60,9 @@
 #include <BeeCoolerLoraAt.h>
 #include <BeeCoolerRecord.h>
 #include <BeeCoolerVib.h>
+#if BEE_TINYML
+#include <BeeCoolerML.h>
+#endif
 
 #include "../sensor/Adxl345Fifo.h"
 #include "../sensor/BatteryMonitor.h"
@@ -97,6 +100,12 @@ SET_LOOP_TASK_STACK_SIZE(16 * 1024);
 #ifndef BEE_POWER_POLICY
 #define BEE_POWER_POLICY 0  // politica por niveis (so com o circuito)
 #endif
+#ifndef BEE_TINYML
+#define BEE_TINYML 0  // 1 = variante sensor_ml (TinyML de dia, decisao da nebulizacao)
+#endif
+#ifndef BEE_TINYML_UTC_OFFSET_H
+#define BEE_TINYML_UTC_OFFSET_H (-3)  // hora local do apiario (o DS1302 guarda UTC)
+#endif
 
 namespace prod {
 
@@ -124,6 +133,9 @@ constexpr uint8_t kRecheckAfterFailedSessions = 3U;
 // Bateria e energia [R 4.4.4, Tabela 12]
 constexpr bool kVbatCircuit = BEE_VBAT_CIRCUIT != 0;
 constexpr bool kPowerPolicy = kVbatCircuit && BEE_POWER_POLICY != 0;
+
+// TinyML (variante sensor_ml; docs/tinyml_pipeline_v0.md)
+constexpr int kTinyMlUtcOffsetH = BEE_TINYML_UTC_OFFSET_H;
 
 // Relogio [R Tabela 12]
 constexpr uint32_t kClockMaxAheadS = 10U * 366U * 24U * 3600U;
@@ -177,6 +189,11 @@ struct NodeState {
 };
 constexpr uint32_t kNodeStateMagic = 0xBEE0C003U;
 RTC_DATA_ATTR NodeState gState;
+#if BEE_TINYML
+// Estado do TinyML (EMAs, historico curto, bomba) na RTC: zera no cold boot,
+// como no treino, em que cada segmento recomeca do zero (D32).
+RTC_DATA_ATTR BeeCoolerML::State gMl;
+#endif
 
 // Sobrevive a resets por software, panic e watchdog (nao a falta de energia).
 struct BootGuard {
@@ -1095,6 +1112,32 @@ int16_t* allocateWindowBuffer(size_t samples) {
   return static_cast<int16_t*>(p);
 }
 
+#if BEE_TINYML
+// Ponto de ligacao com o atuador (ESP32-C3 + bomba, ESP-NOW, Fase 2). O atuador
+// ainda nao existe: por enquanto a decisao so e registrada.
+void pumpCommand(bool on) { (void)on; }
+
+// Um passo do TinyML por registro: atualiza o estado, preve T_in em +30 min
+// (de dia) e decide a nebulizacao. Devolve true se a bomba deve ligar.
+bool runTinyMl(const RecordV1& record, bool rtc_valid, uint32_t seq, RawSink* sink) {
+  const uint32_t t0 = micros();
+  BeeCoolerML::Result ml;
+  BeeCoolerML::step(gMl, record.ts, rtc_valid, record.t_in, record.rh_in, record.t_out,
+                    record.rh_out, prod::kTinyMlUtcOffsetH, ml);
+  const unsigned long dt_us = static_cast<unsigned long>(micros() - t0);
+  pumpCommand(ml.pump);
+  char line[176];
+  snprintf(line, sizeof(line),
+           "ml seq=%lu motivo=%s bomba=%d t_in=%.2f prev%dmin=%.2f virtual=%.2f h=%.2f us=%lu",
+           static_cast<unsigned long>(seq), BeeCoolerML::reasonName(ml.reason), ml.pump ? 1 : 0,
+           ml.t_in_used, BeeCoolerML::horizonMinutes(), ml.t_pred, ml.t_virtual, ml.hour_local, dt_us);
+  Serial.printf("[%s]
+", line);
+  if (sink->available()) sink->logEvent(line);
+  return ml.pump;
+}
+#endif
+
 void runCycle() {
   const uint32_t cycle_start_ms = millis();
   Serial.begin(115200);
@@ -1121,6 +1164,9 @@ void runCycle() {
   if (!warm) {
     memset(&gState, 0, sizeof(gState));
     gState.magic = kNodeStateMagic;
+#if BEE_TINYML
+    BeeCoolerML::reset(gMl);
+#endif
   }
 
   // Rele de reinicio: 3 resets anormais seguidos -> um ciclo inteiro dormindo,
@@ -1314,6 +1360,12 @@ void runCycle() {
     vib.buffer = nullptr;
   }
   feed();
+
+#if BEE_TINYML
+  // ---- TinyML: a decisao vai no bit kPumpRequest (chega a nuvem no registro
+  // canonico) e no events.log do microSD.
+  if (runTinyMl(record, rtc_valid, seq, sink)) flags |= kPumpRequest;
+#endif
 
   // ---- Persistir antes de qualquer transmissao (RF-04)
   record.flags = flags;

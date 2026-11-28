@@ -13,3 +13,4 @@ data/*
 
 AGENTS.md
 UPLOAD_MONITOR_ESP32.md
+.venv/
