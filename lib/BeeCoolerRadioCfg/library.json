@@ -1,0 +1,7 @@
+{
+  "name": "BeeCoolerRadioCfg",
+  "version": "1.0.0",
+  "description": "Configuracao AT do DX-LR32 e conta do ar do enlace LoRa (firmwares *_prod).",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

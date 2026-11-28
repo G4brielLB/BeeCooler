@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>BeeCooler · Painel</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f5f1;--card:#fff;--tx:#1f2328;--mut:#6b7280;--bd:#e4e1d8;--ac:#c98a00;--in:#c2410c;--out:#2563eb;--ok:#15803d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:0 auto;padding:0 14px 28px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0 6px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px}.brand small{display:block;font-size:12px;font-weight:500;color:var(--mut)}.logo{width:44px;height:44px;flex:0 0 auto}
+.live{font-size:13px;color:var(--mut)}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--bd);padding-bottom:8px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--bd);margin-bottom:8px}
+.tabs button{border:0;background:none;padding:11px 16px;font:inherit;font-weight:600;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;display:flex;gap:7px;align-items:center}
+.tabs button.on{color:var(--tx);border-color:var(--ac)}
+.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:flex;background:var(--bd);border-radius:10px;padding:3px;gap:2px;max-width:100%;overflow-x:auto}
+.seg button{border:0;background:none;padding:10px 14px;border-radius:8px;font:inherit;font-size:15px;font-weight:600;color:var(--mut);cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--card);color:var(--tx);box-shadow:0 1px 2px #0002}
+input[type=date]{border:1px solid var(--bd);border-radius:8px;padding:8px;font:inherit;background:var(--card);color:var(--tx)}
+.days{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--mut);align-items:center}
+.days button{border:1px solid var(--bd);background:var(--card);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}.days button.on{border-color:var(--ac);background:#fef3c7;font-weight:700}
+.per{font-size:12px;color:var(--mut);margin:8px 0 0}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.sum,.grid{display:grid;gap:12px;margin:14px 0}.sum{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;min-width:0}
+.card h3{margin:0 0 8px;font-size:15px;display:flex;gap:8px;align-items:center}
+.top-in{border-top:4px solid var(--in)}.top-out{border-top:4px solid var(--out)}.top-n{border-top:4px solid var(--bd)}
+.ms{display:flex;gap:18px;flex-wrap:wrap}.m{display:flex;gap:8px;align-items:center}.m .ic{color:var(--mut)}
+.m small{display:block;color:var(--mut);font-size:12px}.m b{font-size:32px;line-height:1.1}.m span{color:var(--mut);margin-left:3px}
+.tg{display:block;font-style:normal;font-size:12px;font-weight:700;border-radius:6px;padding:1px 8px;margin-top:4px;width:fit-content}.tg.wa{background:#fef3c7;color:#92400e}.tg.ok2{background:#dcfce7;color:#15803d}
+.hv{font-size:13px;color:var(--mut);min-height:20px;margin-bottom:4px}
+svg.ch{width:100%;height:auto;display:block;touch-action:pan-y}.cur{stroke:var(--tx);stroke-width:1;opacity:0}
+.lg{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.lgi{flex:1 1 190px;border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;text-align:left;cursor:pointer;color:var(--tx)}
+.lgi.off{opacity:.45}.lgi.on1{border-color:var(--ac);background:#fffbeb}.lgi i{display:inline-block;width:22px;border-top:3px solid;vertical-align:middle;margin-right:6px}.lgi small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+h2{font-size:18px;margin:26px 0 0;padding-left:10px;border-left:4px solid var(--ac)}h2 small{font-weight:500;color:var(--mut);font-size:13px}
+.btn{border:0;background:var(--ac);color:#fff;border-radius:8px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:7px 10px;border-top:1px solid var(--bd);white-space:nowrap}th{color:var(--mut);font-weight:600;border:0}tr.in td{background:#fffbeb}
+.cp{margin:12px 0}.cp .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}.cp label{font-size:14px;color:var(--mut);display:flex;gap:6px;align-items:center}.cp select,.cp input{border:1px solid var(--bd);border-radius:8px;padding:8px;font:inherit;background:var(--card);color:var(--tx);max-width:100%}
+.foot{font-size:12px;color:var(--mut);margin-top:18px}
+.al{border-radius:10px;padding:10px 14px;margin:10px 0 0;font-size:14px;font-weight:600}.al.wa{background:#fef3c7;color:#92400e}.al.er{background:#fee2e2;color:#991b1b}
+@media(max-width:600px){header{display:block}.live{margin-top:8px}.live .seg{width:100%}.live .seg button{flex:1;padding:10px 6px;font-size:14px}#last,#upd{text-align:left!important}.tabs button{flex:1;justify-content:center}.m b{font-size:28px}h2{font-size:17px}.brand{font-size:19px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-hex" viewBox="0 0 24 24"><path d="M12 2l8.5 5v10L12 22l-8.5-5V7z"/><path d="M12 8l3.5 2v4L12 16l-3.5-2v-4z"/></symbol>
+<symbol id="i-thermo" viewBox="0 0 24 24"><path d="M14 14.8V3.5a2.5 2.5 0 0 0-5 0v11.3a4.5 4.5 0 1 0 5 0z"/></symbol>
+<symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.7s6 6.3 6 10.8a6 6 0 0 1-12 0C6 9 12 2.7 12 2.7z"/></symbol>
+<symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 12h3l2-6 4 12 3-9 2 3h6"/></symbol>
+<symbol id="i-sig" viewBox="0 0 24 24"><path d="M4 20v-4M10 20v-8M16 20V8M22 20V4"/></symbol>
+<symbol id="i-srv" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7h.01M7 17h.01"/></symbol>
+<symbol id="i-chk" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-que" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+<symbol id="i-cmp" viewBox="0 0 24 24"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4M17 20l-4-4M17 20l4-4"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-batt" viewBox="0 0 24 24"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2"/></symbol></defs></svg>
+<main>
+<header>
+ <div class="brand"><svg class="logo" viewBox="0 0 40 40" role="img" aria-label="BeeCooler"><ellipse cx="14" cy="12" rx="7" ry="4.5" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5" transform="rotate(-25 14 12)"/><ellipse cx="25" cy="10" rx="7" ry="4.5" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5" transform="rotate(22 25 10)"/><ellipse cx="21" cy="25" rx="12" ry="8.5" fill="#f2b705" stroke="#2a2216" stroke-width="2"/><path d="M17 18.5v13M22 17.5v15M27 19v12" stroke="#2a2216" stroke-width="3"/><circle cx="9" cy="24" r="5.5" fill="#2a2216"/><circle cx="7.5" cy="22.5" r="1.3" fill="#fff"/><path d="M6 19 3 14M10 18.5 9.5 13.5" stroke="#2a2216" stroke-width="1.8" stroke-linecap="round"/><path d="M33 25h4.5" stroke="#2a2216" stroke-width="2.2" stroke-linecap="round"/></svg><div>BeeCooler<small>Monitoramento da colmeia</small></div></div>
+ <div class="live"><div id="last" style="text-align:right;font-weight:600;color:var(--tx)"></div><div id="upd" style="margin-top:2px;text-align:right"></div></div>
+</header>
+<nav>
+ <div class="tabs" id="tabs"><button data-p="tel"><svg class="ic"><use href="#i-thermo"/></svg>Telemetria</button><button data-p="sys"><svg class="ic"><use href="#i-srv"/></svg>Sistema</button></div>
+ <div class="ctl"><div class="seg" id="rg"><button data-r="d">Último dia</button><button data-r="w">Última semana</button><button data-r="m">Último mês</button><button data-r="x">Dia específico</button><button data-r="c">Personalizado</button></div><input type="date" id="dt" aria-label="Dia específico"></div>
+ <div class="days" id="days"></div>
+</nav>
+<div class="card cp" id="cp" style="display:none"><h3>Período personalizado</h3>
+<div class="row"><div class="seg" id="cg"><button data-g="dia">Por dia</button><button data-g="mes">Por mês</button></div>
+<label>De <input type="date" id="cd0"><input type="month" id="cm0"></label><label>Até <input type="date" id="cd1"><input type="month" id="cm1"></label></div>
+<div class="row"><label>Horário <select id="chf"><option value="off">Dia inteiro</option><option value="ult">Horas do último dia registrado</option><option value="todos">Mesmas horas em cada dia do período</option></select></label>
+<span id="chh" class="row" style="margin:0"><label>das <input type="time" id="ch0"></label><label>às <input type="time" id="ch1"></label></span></div></div>
+<div id="alert"></div>
+<p class="per" id="per"></p>
+<div id="panel"></div>
+<p class="foot" id="foot"></p>
+</main>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{
+  "v": 1,
+  "gateway_id": "GW01",
+  "upload_id": 46674,
+  "gw_time": 1792446674,
+  "sessions": [
+    {
+      "node_id": 1,
+      "boot_id": 234,
+      "rx_time": 1791242785,
+      "attempts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "runs": [
+        {
+          "first_seq": 1,
+          "rec_ver": 1,
+          "data": "YyKo8hALwhAiC4IReQZbAeAK7vb4+wAAnyKo8hILvBAmC30RMANNAf0J7vT4+wAAdSnEahALrRAkC20RIwNXASAK7vT4+wAAsSnEahALvRAlC30RLANPAT4L7vT4+wAA7SnEahILnBAkC1kRLwNMAXoK7PT3+wAAKSrEag8LqhAgC2kRKANQAQsL7/T4+wAAZSrEagcLpxAdC2URMQNQAWwK7PT3+wAAoSrEagULiRAaC0gRKgNOASUK7PT3+wAA3SrEav8KjRAYC00RIgNRAQIL7vT4+wAAGSvEagcLcBAZCzMRHwNSAfQK7fT4+wAAVSvEagsLVRAZCxsRMANKAbUK7fT3+wAAkSvEagsLSxAcCxYRJgNQAcEK7fT4+wAAzSvEagsLURAbCxkRMgNPAdgJ7fT4+wAACSzEagkLYRAcCy0RIgNPAa4L7vT4+wAARSzEagsLfhAcC0kRKgNQAYEK7fT4+wAAgSzEahILcxAdCzwRMANMAXQK7PT3+wAAvSzEag0LgRAeC0oRHQNNAe4L7vT4+wAA+SzEagcLeBAZC0MRKgNPASEK7fT4+wAANS3EavwKdRATC0ARFQNNAVAL6/T3+wAAcS3EavwKjxANC1cRIwNFAQ4L5/P2/AAArS3EavUKnRAJC2MRJANMAZMK6PT2/AAA6S3EavIKtRAEC3URJwNEAdoJ5/P2/AAAJS7EauwKwRAAC3wRKANNAWUK7PP3+wAAYS7EavEKyRACC4ARJQNSAbUK7PT4+wAAnS7Eav0K4BANC5URKgNQAeoK7fT4+wAA2S7EavwKxRAOC4YRIANJAcwK5/T2/AAAFS/Eau8KtRAFC3kRKQNJAZ0K5/T2/AAAUS/Eau4KzxACC48RJQNLAXIK7PT3+wAAjS/Eau0KzRD/CowRMgNQARUL6PT2/AAAyS/Eat4KzRD2Co8RJwNQAUYL6PT3/AAABTDEat4K3xDzCpsRJANDAf8J6PP2/AAAQTDEatsK9RDuCqoRJQNFAbgK6PT2/AAAfTDEatIK8hDrCqcRKwNHAfgL6PT2/AAAuTDEas0K8RDnCqYRGgNPAWsK6fT3/AAA9TDEasYK9BDjCqcRJANKAQkL6fT3/AAAMTHEasMK7xDhCqARJQNOAd8J6/T3/AAAbTHEar0K5RDaCpQRIgNGAbwK6fT2+wAAqTHEasAK8RDcCp8RJANVAUoL6PT3/AAA5THEasEKBxHcCrQRLANNAecJ5/T2/AAAITLEasQKCBHeCrURKgNQAf8K6vT3/AAA"
+        }
+      ]
+    }
+  ]
+}
