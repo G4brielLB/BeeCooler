@@ -1,0 +1,25 @@
+[qc] {"registros_total": 770, "registros_utilizaveis": 665, "motivos_exclusao": {"test_fast": 80, "sht_out": 25}, "vibracao_invalida_entre_utilizaveis": 10, "segmentos": 2, "periodo_local": ["2026-11-22 11:50:00", "2026-11-27 04:50:00"], "por_dia_utilizaveis": {"2026-11-22": 73, "2026-11-23": 144, "2026-11-24": 130, "2026-11-25": 144, "2026-11-26": 144, "2026-11-27": 30}, "sht_leituras_2e3_identicas_frac": 0.997, "sht_leitura1_repete_ciclo_anterior_frac": 0.997, "vbat_validos": 0, "falha_ext_sem_flag_firmware": 25}
+
+[VS] LODO
+  media_horaria    MAE=0.423  P95=0.98  max=1.77  | diurno MAE=0.323
+  linear           MAE=0.196  P95=0.52  max=1.34  | diurno MAE=0.236
+  arvore_d5        MAE=0.229  P95=0.59  max=1.34  | diurno MAE=0.209
+  mlp              MAE=0.457  P95=1.38  max=6.84  | diurno MAE=0.595
+
+[FC] LODO
+  persistencia     MAE=0.300  P95=0.94  max=2.01  | diurno MAE=0.403
+  tendencia_30min  MAE=0.193  P95=0.57  max=1.34  | diurno MAE=0.280
+  linear           MAE=0.128  P95=0.34  max=1.14  | diurno MAE=0.170
+  arvore_d5        MAE=0.159  P95=0.46  max=1.13  | diurno MAE=0.224
+  mlp              MAE=0.115  P95=0.32  max=1.27  | diurno MAE=0.150
+
+[decisão]
+  FC_mlp           {'min_ligada_regra_reativa': 1990, 'min_ligada_ideal': 2080, 'min_ligada_modelo': 2080, 'precisao_vs_ideal': 1.0, 'recall_vs_ideal': 1.0, 'acionamentos_regra': 5, 'acionamentos_modelo': 5, 'antecipacao_media_min': 18.0}
+  FC_linear        {'min_ligada_regra_reativa': 1990, 'min_ligada_ideal': 2080, 'min_ligada_modelo': 2080, 'precisao_vs_ideal': 1.0, 'recall_vs_ideal': 1.0, 'acionamentos_regra': 5, 'acionamentos_modelo': 5, 'antecipacao_media_min': 18.0}
+  FC_persistencia  {'min_ligada_regra_reativa': 1990, 'min_ligada_ideal': 2080, 'min_ligada_modelo': 1990, 'precisao_vs_ideal': 1.0, 'recall_vs_ideal': 0.957, 'acionamentos_regra': 5, 'acionamentos_modelo': 5, 'antecipacao_media_min': 0.0}
+  VS_mlp           {'min_ligada_regra_reativa': 1990, 'min_ligada_ideal': 1990, 'min_ligada_modelo': 1980, 'precisao_vs_ideal': 0.98, 'recall_vs_ideal': 0.975, 'acionamentos_regra': 5, 'acionamentos_modelo': 6, 'antecipacao_media_min': -2.0}
+  VS_linear        {'min_ligada_regra_reativa': 1990, 'min_ligada_ideal': 1990, 'min_ligada_modelo': 2000, 'precisao_vs_ideal': 0.995, 'recall_vs_ideal': 1.0, 'acionamentos_regra': 5, 'acionamentos_modelo': 5, 'antecipacao_media_min': 2.0}
+
+[sensibilidade t_on] {'35.0': {'episodios': 5, 'min_ligada_por_dia_completo': 442.5, 'inicio_mediano': '10:40'}, '36.0': {'episodios': 5, 'min_ligada_por_dia_completo': 422.5, 'inicio_mediano': '11:00'}, '37.0': {'episodios': 5, 'min_ligada_por_dia_completo': 395.0, 'inicio_mediano': '11:30'}}
+
+[exportação] {'modelo_escolhido': {'FC': 'mlp', 'VS': 'linear'}, 'fc_parametros': 321, 'vs_parametros': 10, 'bytes_pesos_float32': 1476, 'bytes_pesos_int8': 577, 'int8_vs_float_max_dif_C': 0.0028648685698371423, 'treino_amostras_fc': 647, 'treino_amostras_vs': 653, 'paridade_c': 'amostras=665  max|dif| previsao=7.63e-006  sensor_virtual=7.63e-006  previsao_int8=5.01e-006  divergencias=0  bomba_divergente=0 OK'}
