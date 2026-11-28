@@ -17,6 +17,11 @@ ROOT = ML_DIR.parents[2]
 # BEE/<nó>/<dia>/rec.bin é lida. Pode ser trocada pela variável de ambiente BEECOOLER_DATA.
 DATA_ROOT = Path(os.environ.get("BEECOOLER_DATA", ROOT / "coleta_dados"))
 OUT = ML_DIR / "out"
+REPO = ML_DIR.parents[1]
+# Destinos no firmware: o cabeçalho gerado vira a lib BeeCoolerML e os vetores
+# alimentam o teste nativo (pio test -e native -f test_tinyml).
+LIB_ML_DIR = REPO / "lib" / "BeeCoolerML" / "src"
+TEST_ML_DIR = REPO / "test" / "test_tinyml"
 
 # Fuso do local de coleta (o DS1302 grava epoch UTC).
 UTC_OFFSET_H = -3

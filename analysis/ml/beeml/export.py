@@ -1,11 +1,12 @@
 """Treina os modelos finais com todos os dados e gera um cabeçalho C para o ESP32-S3.
 
-Saída em out/c/:
-  beecooler_tinyml.h      pesos (float32 e INT8), estado das features (RTC RAM),
-                          inferência e camada de decisão (histerese) — C99 puro,
-                          sem dependência de biblioteca;
-  test_vectors.csv        sequência de entradas → saídas esperadas (Python);
-  parity_test.c           confere o C contra o Python (gcc no host).
+Saídas:
+  lib/BeeCoolerML/src/beecooler_tinyml.h  pesos (float32 e INT8), estado das features
+                          (RTC RAM), inferência e camada de decisão (histerese) —
+                          C99 puro, sem dependência de biblioteca;
+  test/test_tinyml/vectors.h  vetores do teste nativo do PlatformIO;
+  out/c/test_vectors.csv  sequência de entradas → saídas esperadas (Python);
+  out/c/parity_test.c     confere o C contra o Python (gcc no host).
 
 Modelo por tarefa: linear (Ridge, 1 camada) ou MLP, escolhido pela validação LODO
 (config.MODEL_CHOICE). Os dois usam o mesmo motor em C: a entrada é padronizada
@@ -199,7 +200,8 @@ static uint8_t bcml_decide(bcml_state_t *s, uint32_t ts, float hour_local, float
 #endif /* BEECOOLER_TINYML_H */
 """
 
-PARITY_C = r"""/* Teste de paridade C x Python: gcc -std=c99 -O2 parity_test.c -lm -o parity && ./parity test_vectors.csv */
+PARITY_C = r"""/* Teste de paridade C x Python:
+   gcc -std=c99 -O2 -I../../../../lib/BeeCoolerML/src parity_test.c -lm -o parity && ./parity test_vectors.csv */
 #include <stdio.h>
 #include <stdlib.h>
 #include "beecooler_tinyml.h"
@@ -234,6 +236,34 @@ int main(int argc, char **argv) {
   return (n_bad == 0 && n_pump_bad == 0) ? 0 : 1;
 }
 """
+
+
+def _write_vectors_h(tv: pd.DataFrame, path: Path):
+    """Vetores de teste como arrays C (o teste nativo não depende de arquivo externo)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    nl = "\n"
+    rows = ("," + nl).join(
+        f"  {{{int(r.ts)}u, {r.t_in:.2f}f, {r.rh_in:.2f}f, {r.t_out:.2f}f, {r.rh_out:.2f}f, "
+        f"{r.exp_fc:.6f}f, {r.exp_vs:.6f}f, {int(r.exp_pump)}}}"
+        for r in tv.itertuples())
+    lines = [
+        "/* Gerado por analysis/ml/run_all.py — NÃO EDITAR À MÃO.",
+        " * Registros utilizáveis da coleta de campo N01 (tiúba, 22–27/11/2026) e as",
+        " * saídas esperadas calculadas em Python (previsão +30 min, sensor virtual, bomba). */",
+        "#ifndef BEECOOLER_TINYML_VECTORS_H",
+        "#define BEECOOLER_TINYML_VECTORS_H",
+        "#include <stdint.h>",
+        "",
+        "typedef struct { uint32_t ts; float t_in, rh_in, t_out, rh_out, exp_fc, exp_vs; int exp_pump; } bcml_vec_t;",
+        f"static const int BCML_N_VEC = {len(tv)};",
+        f"static const bcml_vec_t BCML_VEC[{len(tv)}] = {{",
+        rows,
+        "};",
+        "",
+        "#endif",
+        "",
+    ]
+    path.write_text(nl.join(lines), encoding="utf-8")
 
 
 def _choose(task, cfg, res):
@@ -272,7 +302,8 @@ def export_all(X: pd.DataFrame, cfg, out: Path, res: dict) -> dict:
     s_fc, qf, sf = _emit_net("FC", nf, FC_FEATURES, kinds["FC"])
     s_vs, qv, sv = _emit_net("VS", nv, VS_FEATURES, kinds["VS"])
     hdr += s_fc + s_vs + HEADER_TAIL
-    (cdir / "beecooler_tinyml.h").write_text(hdr, encoding="utf-8")
+    cfg.LIB_ML_DIR.mkdir(parents=True, exist_ok=True)
+    (cfg.LIB_ML_DIR / "beecooler_tinyml.h").write_text(hdr, encoding="utf-8")
     (cdir / "parity_test.c").write_text(PARITY_C, encoding="utf-8")
 
     # vetores de teste: o mesmo caminho de streaming do nó, com decisão
@@ -298,6 +329,7 @@ def export_all(X: pd.DataFrame, cfg, out: Path, res: dict) -> dict:
                          hour=round(r.hour, 6), exp_fc=pfc, exp_vs=pvs, exp_fc_q=pq, exp_pump=int(pump_on)))
     tv = pd.DataFrame(rows)
     tv.to_csv(cdir / "test_vectors.csv", index=False, float_format="%.6f")
+    _write_vectors_h(tv, cfg.TEST_ML_DIR / "vectors.h")
 
     # erro da quantização INT8 (no próprio treino) e tamanho
     n_par = lambda n: int(sum(w.size for w in n[2]) + sum(x.size for x in n[3]))
@@ -315,7 +347,7 @@ def export_all(X: pd.DataFrame, cfg, out: Path, res: dict) -> dict:
     res = out_res
     try:
         exe = cdir / "parity.exe"
-        subprocess.run(["gcc", "-std=c99", "-O2", "parity_test.c", "-lm", "-o", exe.name], cwd=cdir, check=True,
+        subprocess.run(["gcc", "-std=c99", "-O2", f"-I{cfg.LIB_ML_DIR}", "parity_test.c", "-lm", "-o", exe.name], cwd=cdir, check=True,
                        capture_output=True, text=True)
         p = subprocess.run([str(exe), "test_vectors.csv"], cwd=cdir, capture_output=True, text=True)
         res["paridade_c"] = p.stdout.strip() + (" OK" if p.returncode == 0 else " FALHOU")

@@ -1,6 +1,6 @@
 # Pipeline de TinyML — BeeCooler
 
-> Dados de campo (`coleta_dados/`, fora do repositório, somente leitura) → QC → features → rótulos → modelos (validação deixando um dia de fora) → cabeçalho C para o ESP32-S3.
+> Dados de campo (`coleta_dados/`, fora do repositório, somente leitura) → QC → features → rótulos → modelos (validação deixando um dia de fora) → cabeçalho C em `lib/BeeCoolerML/`, usado pela variante de firmware `sensor_ml`.
 > Decisões, resultados e limites: **[`docs/tinyml_pipeline_v0.md`](../../docs/tinyml_pipeline_v0.md)**.
 
 ## Rodar
@@ -23,7 +23,7 @@ Por padrão os dados são lidos de `../coleta_dados` em relação à pasta que c
 
 1. Copie a nova coleta para `coleta_dados/<campanha>/BEE/<nó>/<AAAAMMDD>/` (com `rec.bin`), sem alterar os originais.
 2. Rode `run_all.py`. Todas as pastas com `rec.bin` são lidas, o QC e a validação deixando um dia de fora são refeitos, e o modelo exportado é escolhido de novo (`config.MODEL_CHOICE = "auto"`: a MLP só é exportada se for ≥ 5 % melhor que o linear).
-3. Compare `out/metricas.json` com a versão anterior antes de levar o novo `out/c/beecooler_tinyml.h` ao firmware.
+3. O `run_all.py` sobrescreve `lib/BeeCoolerML/src/beecooler_tinyml.h` e `test/test_tinyml/vectors.h`. Compare `out/metricas.json` com a versão anterior, rode `pio test -e native -f test_tinyml` e só então commite o novo modelo.
 
 Limiares, horizonte, regras de QC e hiperparâmetros ficam em `config.py`.
 
@@ -37,10 +37,10 @@ Limiares, horizonte, regras de QC e hiperparâmetros ficam em `config.py`.
 | `beeml/features.py` | features em *streaming* (EMAs com passo irregular, tendências, hora) — mesmo algoritmo do C |
 | `beeml/labels.py` | rótulo por histerese, rótulo antecipado, episódios |
 | `beeml/train.py` | baselines + linear + árvore + MLP; validação deixando um dia de fora; avaliação da decisão da bomba |
-| `beeml/export.py` | modelo final → `out/c/beecooler_tinyml.h` (float32 e INT8), vetores de teste, paridade C |
+| `beeml/export.py` | modelo final → `lib/BeeCoolerML/src/beecooler_tinyml.h` (float32 e INT8), `test/test_tinyml/vectors.h`, vetores CSV e paridade C |
 | `beeml/eda.py` | figuras |
 | `run_all.py` | executa tudo e grava `out/` |
 
 ## Saídas (`out/`)
 
-`registros_qc.csv` (todos os registros com motivo de exclusão) · `features_rotulos.csv` · `episodios_regra.csv` · `pred_lodo_*.csv` (previsões fora da amostra) · `metricas.json` · `run_log.txt` · `figs/*.png` · `c/beecooler_tinyml.h`, `c/test_vectors.csv`, `c/parity_test.c`.
+`registros_qc.csv` (todos os registros com motivo de exclusão) · `features_rotulos.csv` · `episodios_regra.csv` · `pred_lodo_*.csv` (previsões fora da amostra) · `metricas.json` · `run_log.txt` · `figs/*.png` · `c/test_vectors.csv`, `c/parity_test.c`. O cabeçalho do modelo fica em `lib/BeeCoolerML/src/`.

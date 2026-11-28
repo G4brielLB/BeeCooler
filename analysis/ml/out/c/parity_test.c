@@ -1,4 +1,5 @@
-/* Teste de paridade C x Python: gcc -std=c99 -O2 parity_test.c -lm -o parity && ./parity test_vectors.csv */
+/* Teste de paridade C x Python:
+   gcc -std=c99 -O2 -I../../../../lib/BeeCoolerML/src parity_test.c -lm -o parity && ./parity test_vectors.csv */
 #include <stdio.h>
 #include <stdlib.h>
 #include "beecooler_tinyml.h"
